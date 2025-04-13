@@ -5,7 +5,10 @@
 
 2、将 `zh_CN.mo` 和 `zh_CN.po` 文件上传至 `user/languages` 目录。
 
-3、打开 `YOURLS` 安装目录下的 `user` 目录中的 `config.php`，然后修改或新增以下代码：`define( 'YOURLS_LANG', 'zh_CN' )`;
+3、打开 `YOURLS` 安装目录下的 `user/config.php` 文件，然后修改以下代码为：
+```bash
+define( 'YOURLS_LANG', 'zh_CN' );
+```
 
 参照：https://yourls.org/docs/guide/extend/languages#install-your-language
 
