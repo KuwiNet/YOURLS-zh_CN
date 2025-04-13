@@ -8,4 +8,4 @@
 3、将 `zh_CN.mo` 档案上传至 `user/languages` 目录。
 
 ## 申明
-Poedit 软件翻译，如有不对请谅解。
+由 Poedit 软件翻译，如有不对请谅解。
