@@ -8,7 +8,7 @@
 2. 翻译前将 PHP 占位符（%s、%1$s、%2$d…）临时替换为 [[PHn]]，翻译后还原，防止被改写；
 3. 对 HTML 标签用 DeepL 的 tag_handling=html 保护；失败时降级为不带 tag 处理再试；
 4. 中文不区分单复数（nplurals=1），plural 条目只翻译并写入 msgstr[0]；
-5. 单个词条翻译失败时保留英文原文并继续，不中断整体流程。
+5. 单个词条翻译失败时保持待翻译状态并以非 0 退出，不写入英文原文。
 
 用法：需环境变量 DEEPL_API_KEY。  python translate_new.py
 """
@@ -86,9 +86,8 @@ def deepl_translate(text, retries=3):
                 last_err = e
                 if attempt < retries - 1:
                     time.sleep(2 ** attempt)
-    print("DeepL 失败，保留原文: %s\n原文: %s" % (last_err, text[:80]),
-          file=sys.stderr)
-    return text
+    print("DeepL 失败: %s\n原文: %s" % (last_err, text[:80]), file=sys.stderr)
+    return None
 
 
 def main():
@@ -110,6 +109,7 @@ def main():
         po.save(PO_FILE)
         return
 
+    failures = 0
     for i, entry in enumerate(to_translate, 1):
         # 翻译源：plural 条目用复数形式（通常含 %s 占位符），其余用单数 msgid
         source = entry.msgid_plural if entry.msgid_plural else entry.msgid
@@ -121,6 +121,11 @@ def main():
             continue
 
         translated = deepl_translate(source)
+        if translated is None:
+            failures += 1
+            print("[%d/%d] 翻译失败，保持待翻译状态（不写入英文原文）: %s"
+                  % (i, len(to_translate), source[:60]))
+            continue
         if entry.msgid_plural:
             # 中文 nplurals=1，仅 msgstr[0]
             entry.msgstr_plural[0] = translated
@@ -131,6 +136,11 @@ def main():
         time.sleep(0.1)  # 简单限速，避免触发 DeepL 限流
 
     po.save(PO_FILE)
+    if failures:
+        # 失败时以非 0 退出，让 workflow 中止，避免把英文/空词条错误推送
+        print("有 %d 个词条翻译失败，已保持待翻译状态，未写入英文。", file=sys.stderr)
+        print("请检查 DEEPL_API_KEY 后重新触发。", file=sys.stderr)
+        sys.exit(1)
     print("翻译完成，已保存 %s" % PO_FILE)
 
 

@@ -35,11 +35,11 @@ msgstr "未知的 [分享] 书签小工具"
 #: admin/index.php:250
 #| msgid "No URL"
 msgid "No URLs."
-msgstr "No URLs."
+msgstr ""
 
 #: admin/index.php:252
 msgid "Try being less specific"
-msgstr "Try being less specific"
+msgstr ""
 
 #: admin/index.php:254
 #, php-format
@@ -590,11 +590,11 @@ msgstr "缩短地址"
 
 #: includes/functions-html.php:219
 msgid "Delete confirmation"
-msgstr "Delete confirmation"
+msgstr ""
 
 #: includes/functions-html.php:221
 msgid "Really delete?"
-msgstr "Really delete?"
+msgstr ""
 
 #: includes/functions-html.php:229 includes/functions-html.php:623
 #: includes/functions-html.php:624
@@ -1132,7 +1132,7 @@ msgstr "插件未激活"
 #: includes/functions-plugins.php:693
 #, php-format
 msgid "Loading %s generated unexpected output. Error was: <br/><pre>%s</pre>"
-msgstr "Loading %s generated unexpected output. Error was: <br/><pre>%s</pre>"
+msgstr ""
 
 #: includes/functions-plugins.php:784
 msgid "Invalid link"
@@ -1165,7 +1165,7 @@ msgstr "链接地址已经是一个短地址"
 #: includes/functions-shorturls.php:84
 #, php-format
 msgid "%s already exists in database (short URL: %s)"
-msgstr "%s already exists in database (short URL: %s)"
+msgstr ""
 
 #: includes/functions-shorturls.php:112
 #, php-format
