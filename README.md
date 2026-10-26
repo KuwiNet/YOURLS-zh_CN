@@ -35,7 +35,6 @@ define( 'YOURLS_LANG', 'zh_CN' );
 
 插件列表中的名称与简介取自各插件 `plugin.php` 头注释（`Plugin Name:` / `Description:`），属于插件自身的元数据，**不通过本翻译包翻译**。如需汉化插件，请直接修改对应插件的 `plugin.php` 头注释。
 
-## 关联仓库
+## 上游模板源
 
-- 上游英文模板源：[YOURLS/YOURLS.pot](https://github.com/YOURLS/YOURLS.pot)
-- 更新调整：[KuwiNet/YOURLS.pot-zh_CN](https://github.com/KuwiNet/YOURLS.pot-zh_CN)
+- [YOURLS/YOURLS.pot](https://github.com/YOURLS/YOURLS.pot)：官方英文翻译模板仓库
