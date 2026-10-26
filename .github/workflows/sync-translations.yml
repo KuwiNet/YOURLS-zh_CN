@@ -36,9 +36,6 @@ jobs:
           msgmerge --previous --lang=zh_CN --output-file=zh_CN.po zh_CN.po.old YOURLS.pot
           rm -f zh_CN.po.old
 
-      - name: Protect plugin entries in zh_CN.po
-        run: python .github/scripts/protect_plugin_entries.py
-
       - name: Translate new strings with DeepL
         env:
           DEEPL_API_KEY: ${{ secrets.DEEPL_API_KEY }}

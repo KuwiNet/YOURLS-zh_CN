@@ -1407,11 +1407,3 @@ msgstr "没有引荐数据。"
 #: yourls-infos.php:557
 msgid "Short link"
 msgstr "短地址"
-
-msgid "day"
-msgid_plural "days"
-msgstr[0] ""
-
-msgid "view"
-msgid_plural "views"
-msgstr[0] ""
