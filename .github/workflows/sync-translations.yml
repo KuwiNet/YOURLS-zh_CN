@@ -1,0 +1,61 @@
+name: Sync YOURLS zh_CN translations
+
+# 每周定时 + 手动触发
+on:
+  schedule:
+    # UTC 周日 21:00 = 北京时间周一 05:00
+    - cron: '0 21 * * 0'
+  workflow_dispatch:
+
+concurrency:
+  group: sync-translations
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install gettext & Python deps
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y gettext
+          python -m pip install --quiet polib
+
+      - name: Fetch official YOURLS.pot
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/YOURLS/YOURLS.pot/main/YOURLS.pot -o YOURLS.pot
+          echo "官方模板获取成功，大小: $(wc -c < YOURLS.pot) 字节"
+
+      - name: Merge new strings into zh_CN.po
+        run: |
+          cp zh_CN.po zh_CN.po.old
+          msgmerge --previous --lang=zh_CN --output-file=zh_CN.po zh_CN.po.old YOURLS.pot
+          rm -f zh_CN.po.old
+
+      - name: Translate new strings with DeepL
+        env:
+          DEEPL_API_KEY: ${{ secrets.DEEPL_API_KEY }}
+        run: python .github/scripts/translate_new.py
+
+      - name: Compile zh_CN.mo
+        run: |
+          msgfmt --check zh_CN.po -o zh_CN.mo
+          echo "zh_CN.mo 编译成功"
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet && [ -z "$(git status --porcelain)" ]; then
+            echo "官方模板无更新，没有需要提交的变更。"
+            exit 0
+          fi
+          git add -A
+          git commit -m "chore: sync YOURLS zh_CN translations ($(date -u +%F))"
+          git push origin HEAD
