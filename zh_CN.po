@@ -46,8 +46,8 @@ msgid ""
 "Display <strong>%1$s</strong> to <strong class=\"increment\">%2$s</strong> "
 "of <strong class=\"increment\">%3$s</strong> URLs"
 msgstr ""
-"显示第 <strong>%1$s</strong> 到第 <strong class=\\”increment\\”>%2$s</strong> \n"
-"个网址，总计 <strong class=\\”increment\\”>%3$s</strong> 个网址"
+"显示第 <strong>%1$s</strong> 到第 <strong class=\\\"increment\\\">%2$s</strong> \n"
+"个网址，总计 <strong class=\\\"increment\\\">%3$s</strong> 个网址"
 
 #: admin/index.php:256
 #, php-format
@@ -1407,3 +1407,11 @@ msgstr "没有引荐数据。"
 #: yourls-infos.php:557
 msgid "Short link"
 msgstr "短地址"
+
+msgid "day"
+msgid_plural "days"
+msgstr[0] ""
+
+msgid "view"
+msgid_plural "views"
+msgstr[0] ""
