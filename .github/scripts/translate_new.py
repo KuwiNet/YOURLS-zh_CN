@@ -8,7 +8,7 @@
 2. 翻译前将 PHP 占位符（%s、%1$s、%2$d…）临时替换为 [[PHn]]，翻译后还原，防止被改写；
 3. 对 HTML 标签用 DeepL 的 tag_handling=html 保护；失败时降级为不带 tag 处理再试；
 4. 中文不区分单复数（nplurals=1），plural 条目只翻译并写入 msgstr[0]；
-5. 单个词条翻译失败时保持待翻译状态并以非 0 退出，不写入英文原文。
+5. 单个词条翻译失败时保持待翻译状态，不写入英文原文，全部失败则退出码 1 中止 workflow。
 
 用法：需环境变量 DEEPL_API_KEY。  python translate_new.py
 """
@@ -34,7 +34,6 @@ PH_RE = re.compile(r"%\d*\$?[sd]")
 def _call_deepl(text, use_tag_handling):
     """调用 DeepL 翻译，返回译文文本。"""
     params = {
-        "auth_key": API_KEY,
         "text": text,
         "source_lang": "EN",
         "target_lang": "ZH",
@@ -44,7 +43,8 @@ def _call_deepl(text, use_tag_handling):
     if use_tag_handling:
         params["tag_handling"] = "html"
     data = urllib.parse.urlencode(params).encode("utf-8")
-    req = urllib.request.Request(DEEPL_URL, data=data, method="POST")
+    headers = {"Authorization": "DeepL-Auth-Key " + API_KEY}
+    req = urllib.request.Request(DEEPL_URL, data=data, method="POST", headers=headers)
     with urllib.request.urlopen(req, timeout=30) as resp:
         result = json.loads(resp.read().decode("utf-8"))
     return result["translations"][0]["text"]
@@ -138,7 +138,7 @@ def main():
     po.save(PO_FILE)
     if failures:
         # 失败时以非 0 退出，让 workflow 中止，避免把英文/空词条错误推送
-        print("有 %d 个词条翻译失败，已保持待翻译状态，未写入英文。", file=sys.stderr)
+        print("有 %d 个词条翻译失败，已保持待翻译状态，未写入英文。" % failures, file=sys.stderr)
         print("请检查 DEEPL_API_KEY 后重新触发。", file=sys.stderr)
         sys.exit(1)
     print("翻译完成，已保存 %s" % PO_FILE)

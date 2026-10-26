@@ -1,11 +1,9 @@
 name: Sync YOURLS zh_CN translations
 
-# 每周定时 + 手动触发
 on:
   schedule:
-    # UTC 周日 21:00 = 北京时间周一 05:00
-    - cron: '0 21 * * 0'
-  workflow_dispatch:
+    - cron: '0 21 * * 0'   # 北京时间每周一 05:00
+  workflow_dispatch:        # 手动触发
 
 concurrency:
   group: sync-translations
@@ -24,7 +22,7 @@ jobs:
       - name: Install gettext & Python deps
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y gettext
+          sudo apt-get install -y gettext zip
           python -m pip install --quiet polib
 
       - name: Fetch official YOURLS.pot
@@ -49,13 +47,47 @@ jobs:
           echo "zh_CN.mo 编译成功"
 
       - name: Commit and push if changed
+        id: commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           if git diff --quiet && [ -z "$(git status --porcelain)" ]; then
             echo "官方模板无更新，没有需要提交的变更。"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           git add -A
           git commit -m "chore: sync YOURLS zh_CN translations ($(date -u +%F))"
           git push origin HEAD
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Get official YOURLS version (tag 来源)
+        id: version
+        run: |
+          TAG=$(gh api repos/YOURLS/YOURLS/releases/latest --jq .tag_name)
+          echo "TAG=$TAG" >> "$GITHUB_OUTPUT"
+          echo "官方 YOURLS 版本: $TAG"
+
+      - name: Create / update release
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.version.outputs.TAG }}"
+          ZIP="yourls-zh_CN-${TAG}.zip"
+          # 打包成解压即部署结构：user/languages/ 放到 YOURLS 根目录即可
+          mkdir -p dist/user/languages
+          cp zh_CN.po zh_CN.mo dist/user/languages/
+          cp YOURLS.pot dist/
+          (cd dist && zip -r ../"${ZIP}" .)
+          if gh release view "$TAG" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            echo "Release $TAG 已存在，更新资产..."
+            gh release upload "$TAG" "$ZIP" --clobber --repo "${{ github.repository }}"
+          else
+            echo "创建 Release $TAG ..."
+            NOTES=$(printf '自动同步官方 YOURLS 英文模板并增量翻译。\n\n解压后把 user/languages/ 整个复制到 YOURLS 根目录即可启用简体中文。\n对应官方版本: https://github.com/YOURLS/YOURLS/releases/tag/%s' "$TAG")
+            gh release create "$TAG" "$ZIP" \
+              --title "YOURLS 简体中文翻译包 $TAG" \
+              --notes "$NOTES" \
+              --repo "${{ github.repository }}"
+          fi
