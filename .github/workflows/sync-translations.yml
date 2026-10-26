@@ -63,6 +63,8 @@ jobs:
 
       - name: Get official YOURLS version (tag 来源)
         id: version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG=$(gh api repos/YOURLS/YOURLS/releases/latest --jq .tag_name)
           echo "TAG=$TAG" >> "$GITHUB_OUTPUT"
