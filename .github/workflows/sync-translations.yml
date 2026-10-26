@@ -71,7 +71,6 @@ jobs:
           echo "官方 YOURLS 版本: $TAG"
 
       - name: Create / update release
-        if: steps.commit.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -83,10 +82,14 @@ jobs:
           cp YOURLS.pot dist/
           (cd dist && zip -r ../"${ZIP}" .)
           if gh release view "$TAG" --repo "${{ github.repository }}" >/dev/null 2>&1; then
-            echo "Release $TAG 已存在，更新资产..."
-            gh release upload "$TAG" "$ZIP" --clobber --repo "${{ github.repository }}"
+            if [ "${{ steps.commit.outputs.changed }}" = "true" ]; then
+              echo "Release $TAG 已存在且本次有翻译变更，更新资产..."
+              gh release upload "$TAG" "$ZIP" --clobber --repo "${{ github.repository }}"
+            else
+              echo "Release $TAG 已存在且无新变更，跳过。"
+            fi
           else
-            echo "创建 Release $TAG ..."
+            echo "创建 Release $TAG（发布当前已翻译版本）..."
             NOTES=$(printf '自动同步官方 YOURLS 英文模板并增量翻译。\n\n解压后把 user/languages/ 整个复制到 YOURLS 根目录即可启用简体中文。\n对应官方版本: https://github.com/YOURLS/YOURLS/releases/tag/%s' "$TAG")
             gh release create "$TAG" "$ZIP" \
               --title "YOURLS 简体中文翻译包 $TAG" \
